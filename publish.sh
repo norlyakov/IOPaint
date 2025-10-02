@@ -1,12 +1,40 @@
 #!/usr/bin/env bash
-set -e
 
-pushd ./web_app
-rm -r -f dist
-npm run build
-popd
-rm -r -f ./iopaint/web_app
-cp -r web_app/dist ./iopaint/web_app
+TWINE_REPOSITORY='mountbit'
 
-rm -r -f dist
-python3 setup.py sdist bdist_wheel
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "${CUR_DIR}"
+
+PYTHON="${CUR_DIR}/venv/bin/python"
+TWINE="${CUR_DIR}/venv/bin/twine"
+
+
+echo "Build SDIST and WHEEL"
+${PYTHON} setup.py -q sdist bdist_wheel
+echo
+echo "Check dists by Twine"
+${TWINE} check dist/*
+rm -rf dist build
+
+
+echo "Make release"
+
+exit_handler() {
+  # Restore test files and directories
+  cd "${CUR_DIR}/src/mountbit"
+  git clean -fdx mountbit/*
+  git restore mountbit/*
+}
+trap exit_handler EXIT
+
+rm -rf dist build
+# Delete all tests before build a wheel
+find mountbit -type d -name "tests" -exec rm -rf {} +
+find mountbit -type f \( -name "test_*.py" -o -name "tests.py" \) -delete
+${PYTHON} setup.py bdist_wheel
+
+TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
+rm -rf dist build
+
+cd "${CUR_DIR}"
+echo OK
