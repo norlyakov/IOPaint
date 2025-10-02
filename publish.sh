@@ -19,19 +19,8 @@ rm -rf dist build
 
 echo "Make release"
 
-exit_handler() {
-  # Restore test files and directories
-  cd "${CUR_DIR}"
-  git clean -fdx iopaint/*
-  git restore iopaint/*
-}
-trap exit_handler EXIT
-
 rm -rf dist build
 ${PYTHON} setup.py bdist_wheel
-# Delete all tests before build a wheel
-find iopaint -type d -name "tests" -exec rm -rf {} +
-find iopaint -type f \( -name "test_*.py" -o -name "tests.py" \) -delete
 # TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
 rm -rf dist build
 
