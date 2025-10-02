@@ -21,19 +21,18 @@ echo "Make release"
 
 exit_handler() {
   # Restore test files and directories
-  cd "${CUR_DIR}/src/mountbit"
-  git clean -fdx mountbit/*
-  git restore mountbit/*
+  cd "${CUR_DIR}"
+  git clean -fdx iopaint/*
+  git restore iopaint/*
 }
 trap exit_handler EXIT
 
 rm -rf dist build
-# Delete all tests before build a wheel
-find mountbit -type d -name "tests" -exec rm -rf {} +
-find mountbit -type f \( -name "test_*.py" -o -name "tests.py" \) -delete
 ${PYTHON} setup.py bdist_wheel
-
-TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
+# Delete all tests before build a wheel
+find iopaint -type d -name "tests" -exec rm -rf {} +
+find iopaint -type f \( -name "test_*.py" -o -name "tests.py" \) -delete
+# TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
 rm -rf dist build
 
 cd "${CUR_DIR}"
