@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import List
 
 from PIL import Image, ImageOps, PngImagePlugin
-from fastapi import FastAPI, HTTPException
 from starlette.responses import FileResponse
 
 from ..schema import MediasResponse, MediaTab
@@ -16,8 +15,7 @@ from .utils import aspect_to_string, generate_filename, glob_img
 
 
 class FileManager:
-    def __init__(self, app: FastAPI, input_dir: Path, mask_dir: Path, output_dir: Path):
-        self.app = app
+    def __init__(self, input_dir: Path, mask_dir: Path, output_dir: Path):
         self.input_dir: Path = input_dir
         self.mask_dir: Path = mask_dir
         self.output_dir: Path = output_dir
@@ -27,11 +25,6 @@ class FileManager:
         if not self.thumbnail_directory.exists():
             self.thumbnail_directory.mkdir(parents=True)
 
-        # fmt: off
-        self.app.add_api_route("/api/v1/medias", self.api_medias, methods=["GET"], response_model=List[MediasResponse])
-        self.app.add_api_route("/api/v1/media_file", self.api_media_file, methods=["GET"])
-        self.app.add_api_route("/api/v1/media_thumbnail_file", self.api_media_thumbnail_file, methods=["GET"])
-        # fmt: on
 
     def api_medias(self, tab: MediaTab) -> List[MediasResponse]:
         img_dir = self._get_dir(tab)
@@ -103,7 +96,7 @@ class FileManager:
         self, directory: Path, original_filename: str, width, height, **options
     ):
         directory = Path(directory)
-        storage = FilesystemStorageBackend(self.app)
+        storage = FilesystemStorageBackend()
         crop = options.get("crop", "fit")
         background = options.get("background")
         quality = options.get("quality", 90)
@@ -142,7 +135,6 @@ class FileManager:
         try:
             image.load()
         except (IOError, OSError):
-            self.app.logger.warning("Thumbnail not load image: %s", original_filepath)
             return thumbnail_filepath, (width, height)
 
         # get original image format

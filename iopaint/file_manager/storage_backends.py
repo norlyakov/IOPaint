@@ -5,8 +5,6 @@ from abc import ABC, abstractmethod
 
 
 class BaseStorageBackend(ABC):
-    def __init__(self, app=None):
-        self.app = app
 
     @abstractmethod
     def read(self, filepath, mode="rb", **kwargs):
