@@ -21,7 +21,7 @@ echo "Make release"
 
 rm -rf dist build
 ${PYTHON} setup.py bdist_wheel
-# TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
+TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
 rm -rf dist build
 
 cd "${CUR_DIR}"
